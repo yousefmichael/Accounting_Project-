@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>نظام المحاسبة المتكامل | Chart of Accounts</title>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="coa">
+  <div class="toast-container" id="toastContainer"></div>
+
+  <header class="navbar no-print">
+    <div class="navbar-logo">
+      <h1>نظام المحاسبة</h1>
+      <p>Accounting System</p>
+    </div>
+    <nav class="navbar-nav">
+      <a href="index.html" class="nav-item">
+        <span class="nav-icon">🏠</span>
+        <div><span class="nav-label-ar">لوحة التحكم</span><span class="nav-label-en">Dashboard</span></div>
+      </a>
+      <a href="coa.html" class="nav-item active">
+        <span class="nav-icon">🗂️</span>
+        <div><span class="nav-label-ar">دليل الحسابات</span><span class="nav-label-en">Chart of Accounts</span></div>
+      </a>
+      <a href="entry.html" class="nav-item">
+        <span class="nav-icon">📝</span>
+        <div><span class="nav-label-ar">قيود اليومية</span><span class="nav-label-en">Journal Entry</span></div>
+      </a>
+      <a href="trialbalance.html" class="nav-item">
+        <span class="nav-icon">⚖️</span>
+        <div><span class="nav-label-ar">ميزان المراجعة</span><span class="nav-label-en">Trial Balance</span></div>
+      </a>
+      <a href="income.html" class="nav-item">
+        <span class="nav-icon">💰</span>
+        <div><span class="nav-label-ar">قائمة الدخل</span><span class="nav-label-en">Income Statement</span></div>
+      </a>
+      <a href="balancesheet.html" class="nav-item">
+        <span class="nav-icon">🏦</span>
+        <div><span class="nav-label-ar">الميزانية العمومية</span><span class="nav-label-en">Balance Sheet</span></div>
+      </a>
+      <a href="savedentries.html" class="nav-item">
+        <span class="nav-icon">💾</span>
+        <div><span class="nav-label-ar">القيود المحفوظة</span><span class="nav-label-en">Saved Entries</span></div>
+      </a>
+    </nav>
+    <div class="navbar-actions">
+      <button class="btn btn-ghost" onclick="exportToExcel()">📊 تصدير Excel</button>
+      <button class="btn btn-danger" onclick="confirmClearData()">🗑️ مسح البيانات</button>
+    </div>
+  </header>
+
+  <main class="main-content" id="mainContent">
+    <section class="page-section" id="page-coa">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">دليل الحسابات</h2>
+          <p class="page-subtitle">Chart of Accounts (COA)</p>
+        </div>
+        <input type="text" class="form-input" id="coaSearch" placeholder="🔍 بحث... Search..." style="width: 250px" oninput="filterCOA()" />
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="coaCountAssets" style="color:var(--info)">0</div>
+          <div class="stat-label">أصول Assets</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="coaCountLiabilities" style="color:var(--danger)">0</div>
+          <div class="stat-label">خصوم وحقوق ملكية Liabilities & Equity</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="coaCountExpenses" style="color:var(--warning)">0</div>
+          <div class="stat-label">مصروفات Expenses</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="coaCountRevenues" style="color:var(--success)">0</div>
+          <div class="stat-label">إيرادات Revenues</div>
+        </div>
+      </div>
+
+      <!-- ADD ACCOUNT FORM -->
+      <div class="glass-card" style="padding: 16px; margin-bottom: 24px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; gap: 12px; align-items: flex-end;">
+          <div class="form-group" style="margin-bottom: 0; flex:1;">
+            <label class="form-label">الحساب الرئيسي Main Account</label>
+            <select id="mainAccCode" class="form-input"></select>
+          </div>
+          <div class="form-group" style="margin-bottom: 0; flex:2;">
+            <label class="form-label">الاسم (عربي) Name AR</label>
+            <input type="text" id="newAccNameAr" class="form-input" placeholder="اسم الحساب..." />
+          </div>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: flex-end;">
+          <div class="form-group" style="margin-bottom: 0; flex:1;">
+            <label class="form-label">النوع Type</label>
+            <select id="newAccType" class="form-input"></select>
+          </div>
+          <div class="form-group" style="margin-bottom: 0; flex:1;">
+            <label class="form-label">التصنيف Class.</label>
+            <select id="newAccClass" class="form-input"></select>
+          </div>
+          <div class="form-group" style="margin-bottom: 0; flex:1;">
+            <label class="form-label">رصيد مدين Dr Begin</label>
+            <input type="number" id="newAccBeginDr" class="form-input" placeholder="0.00" min="0" step="0.01" />
+          </div>
+          <div class="form-group" style="margin-bottom: 0; flex:1;">
+            <label class="form-label">رصيد دائن Cr Begin</label>
+            <input type="number" id="newAccBeginCr" class="form-input" placeholder="0.00" min="0" step="0.01" />
+          </div>
+          <button class="btn btn-primary" onclick="addAccount()" style="padding: 10px 20px;">➕ إضافة سطر</button>
+        </div>
+      </div>
+
+      <div class="glass-card" style="padding: 0; overflow: hidden">
+        <div class="table-container" style="max-height: 600px; overflow-y: auto; border:none;">
+          <table>
+            <thead>
+              <tr>
+                <th>الكود Code</th>
+                <th>اسم الحساب Account Name</th>
+                <th>النوع Type</th>
+                <th>التصنيف Classification</th>
+                <th>إجراء Actions</th>
+              </tr>
+            </thead>
+            <tbody id="coaTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal-overlay" id="confirmModal">
+    <div class="modal-content glass-card" style="text-align: center">
+      <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 12px; color: var(--danger);">⚠️ تأكيد المسح</h3>
+      <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 24px;">هل أنت متأكد من مسح جميع البيانات؟ لا يمكن التراجع عن هذا الإجراء.</p>
+      <div style="display: flex; gap: 12px; justify-content: center">
+        <button class="btn btn-ghost" onclick="closeModal()">إلغاء Cancel</button>
+        <button class="btn btn-danger" onclick="clearAllData()">مسح الكل Clear All</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>نظام المحاسبة المتكامل | Income Statement</title>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="income">
+  <div class="toast-container" id="toastContainer"></div>
+
+  <header class="navbar no-print">
+    <div class="navbar-logo">
+      <h1>نظام المحاسبة</h1>
+      <p>Accounting System</p>
+    </div>
+    <nav class="navbar-nav">
+      <a href="index.html" class="nav-item">
+        <span class="nav-icon">🏠</span>
+        <div><span class="nav-label-ar">لوحة التحكم</span><span class="nav-label-en">Dashboard</span></div>
+      </a>
+      <a href="coa.html" class="nav-item">
+        <span class="nav-icon">🗂️</span>
+        <div><span class="nav-label-ar">دليل الحسابات</span><span class="nav-label-en">Chart of Accounts</span></div>
+      </a>
+      <a href="entry.html" class="nav-item">
+        <span class="nav-icon">📝</span>
+        <div><span class="nav-label-ar">قيود اليومية</span><span class="nav-label-en">Journal Entry</span></div>
+      </a>
+      <a href="trialbalance.html" class="nav-item">
+        <span class="nav-icon">⚖️</span>
+        <div><span class="nav-label-ar">ميزان المراجعة</span><span class="nav-label-en">Trial Balance</span></div>
+      </a>
+      <a href="income.html" class="nav-item active">
+        <span class="nav-icon">💰</span>
+        <div><span class="nav-label-ar">قائمة الدخل</span><span class="nav-label-en">Income Statement</span></div>
+      </a>
+      <a href="balancesheet.html" class="nav-item">
+        <span class="nav-icon">🏦</span>
+        <div><span class="nav-label-ar">الميزانية العمومية</span><span class="nav-label-en">Balance Sheet</span></div>
+      </a>
+      <a href="savedentries.html" class="nav-item">
+        <span class="nav-icon">💾</span>
+        <div><span class="nav-label-ar">القيود المحفوظة</span><span class="nav-label-en">Saved Entries</span></div>
+      </a>
+    </nav>
+    <div class="navbar-actions">
+      <button class="btn btn-ghost" onclick="exportToExcel()">📊 تصدير Excel</button>
+      <button class="btn btn-danger" onclick="confirmClearData()">🗑️ مسح البيانات</button>
+    </div>
+  </header>
+
+  <main class="main-content" id="mainContent">
+    <section class="page-section" id="page-income">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">قائمة الدخل</h2>
+          <p class="page-subtitle">Income Statement</p>
+        </div>
+        <button class="btn btn-ghost" onclick="window.print()">🖨️ طباعة Print</button>
+      </div>
+
+      <div class="glass-card" style="padding: 32px">
+        <div style="text-align: center; margin-bottom: 32px">
+          <h3 style="font-size: 1.4rem; font-weight: 800; color: var(--accent-primary);">قائمة الدخل عن الفترة</h3>
+          <p style="font-size: 0.8rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">Income Statement for the Period</p>
+        </div>
+        <div id="incomeStatementContent"></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal-overlay" id="confirmModal">
+    <div class="modal-content glass-card" style="text-align: center">
+      <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 12px; color: var(--danger);">⚠️ تأكيد المسح</h3>
+      <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 24px;">هل أنت متأكد من مسح جميع البيانات؟ لا يمكن التراجع عن هذا الإجراء.</p>
+      <div style="display: flex; gap: 12px; justify-content: center">
+        <button class="btn btn-ghost" onclick="closeModal()">إلغاء Cancel</button>
+        <button class="btn btn-danger" onclick="clearAllData()">مسح الكل Clear All</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
