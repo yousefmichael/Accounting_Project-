@@ -4271,6 +4271,112 @@ function exportToExcel() {
 }
 
 // ==========================================
+// ACCOUNT STATEMENT (LEDGER)
+// ==========================================
+function initLedgerPage() {
+  const selectBtn = document.getElementById("ledgerAccountSelect");
+  if (!selectBtn) return;
+  
+  // Populate dropdown with active accounts + some grouping
+  const balances = computeAccountBalances();
+  const activeAccounts = Object.values(balances)
+    .filter(b => b.totalDr > 0 || b.totalCr > 0 || b.beginDr > 0 || b.beginCr > 0)
+    .sort((a,b) => a.code.localeCompare(b.code, undefined, {numeric: true}));
+    
+  let html = `<option value="">-- اختر الحساب Select Account --</option>`;
+  activeAccounts.forEach(acc => {
+    html += `<option value="${acc.code}">${acc.code} - ${acc.nameAr}</option>`;
+  });
+  selectBtn.innerHTML = html;
+}
+
+function renderLedgerDetails() {
+  const selectBtn = document.getElementById("ledgerAccountSelect");
+  const code = selectBtn.value;
+  const tbody = document.getElementById("ledgerBody");
+  const tfoot = document.getElementById("ledgerFoot");
+  if (!tbody) return;
+
+  if (!code) {
+    tbody.innerHTML = `<tr><td colspan="6" style="padding:40px;text-align:center;color:var(--text-secondary);font-weight:700;">يرجى اختيار حساب لعرض الحركة</td></tr>`;
+    tfoot.innerHTML = "";
+    return;
+  }
+
+  const accDetail = getAccountByCode(code);
+  const isNormalDebit = code.startsWith("1") || code.startsWith("3"); // Assets and Expenses
+
+  const beginBal = STATE.beginningBalances && STATE.beginningBalances[code] ? STATE.beginningBalances[code] : {dr: 0, cr: 0};
+  
+  let runningBalance = isNormalDebit ? (beginBal.dr - beginBal.cr) : (beginBal.cr - beginBal.dr);
+  let html = "";
+  
+  let totalDrMove = 0;
+  let totalCrMove = 0;
+
+  // Add Beginning Balance Row
+  html += `<tr style="background:#f1f5f9;">
+    <td style="font-weight:600; color:var(--text-muted);">-</td>
+    <td style="font-weight:600; color:var(--text-muted);">-</td>
+    <td style="font-weight:700;">رصيد افتتاحي Beginning Balance</td>
+    <td class="money" style="color:var(--text-muted);">${beginBal.dr > 0 ? formatNumber(beginBal.dr) : "-"}</td>
+    <td class="money" style="color:var(--text-muted);">${beginBal.cr > 0 ? formatNumber(beginBal.cr) : "-"}</td>
+    <td class="money" style="font-weight:800;">${formatNumberAlways(runningBalance)}</td>
+  </tr>`;
+
+  // Sort entries chronologically
+  const sortedEntries = [...STATE.entries].sort((a,b) => {
+    if (a.date !== b.date) return new Date(a.date) - new Date(b.date);
+    return a.journalNo - b.journalNo;
+  });
+
+  let hasMovements = false;
+
+  sortedEntries.forEach(entry => {
+    const linesForCode = entry.lines.filter(l => l.code === code);
+    linesForCode.forEach(line => {
+      hasMovements = true;
+      const dr = line.dr || 0;
+      const cr = line.cr || 0;
+      totalDrMove += dr;
+      totalCrMove += cr;
+      
+      if (isNormalDebit) {
+        runningBalance = runningBalance + dr - cr;
+      } else {
+        runningBalance = runningBalance + cr - dr;
+      }
+
+      html += `<tr>
+        <td style="font-weight:500;">${entry.date}</td>
+        <td style="font-weight:800; font-family:'JetBrains Mono',monospace;">#${entry.journalNo}</td>
+        <td>${line.explanation || entry.explanation || "لا يوجد بيان"}</td>
+        <td class="money" style="color:${dr > 0 ? 'var(--text-primary)' : 'var(--text-muted)'};">${dr > 0 ? formatNumber(dr) : "-"}</td>
+        <td class="money" style="color:${cr > 0 ? 'var(--text-primary)' : 'var(--text-muted)'};">${cr > 0 ? formatNumber(cr) : "-"}</td>
+        <td class="money" style="font-weight:800; color:${runningBalance < 0 ? 'var(--danger)' : 'inherit'};">${formatNumberAlways(runningBalance)}</td>
+      </tr>`;
+    });
+  });
+
+  if (!hasMovements && beginBal.dr === 0 && beginBal.cr === 0) {
+    html = `<tr><td colspan="6" style="padding:40px;text-align:center;color:var(--text-secondary);font-weight:700;">لا توجد حركات أو رصيد لهذا الحساب</td></tr>`;
+  }
+
+  tbody.innerHTML = html;
+
+  if (hasMovements || beginBal.dr > 0 || beginBal.cr > 0) {
+    tfoot.innerHTML = `<tr>
+      <td colspan="3" style="text-align:right; font-weight:800;">الإجمالي Totals</td>
+      <td class="money" style="color:#db2777;">${formatNumberAlways(totalDrMove)}</td>
+      <td class="money" style="color:#2563eb;">${formatNumberAlways(totalCrMove)}</td>
+      <td class="money" style="color:var(--success); font-weight:900;">${formatNumberAlways(runningBalance)}</td>
+    </tr>`;
+  } else {
+      tfoot.innerHTML = "";
+  }
+}
+
+// ==========================================
 // EVENT LISTENERS & INITIALIZATION
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
@@ -4299,6 +4405,7 @@ document.addEventListener("DOMContentLoaded", () => {
     case "coa": renderCOA(); break;
     case "entry": initEntryPage(); break;
     case "trialbalance": renderTrialBalance(); break;
+    case "ledger": initLedgerPage(); break;
     case "income": renderIncomeStatement(); break;
     case "balancesheet": renderBalanceSheet(); break;
     case "savedentries": renderSavedEntries(); break;

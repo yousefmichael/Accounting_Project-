@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>نظام المحاسبة المتكامل | Trial Balance</title>
+  <title>نظام المحاسبة المتكامل | Account Statement</title>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css">
 </head>
-<body data-page="trialbalance">
+<body data-page="ledger">
   <div class="toast-container" id="toastContainer"></div>
 
   <header class="navbar no-print">
@@ -29,11 +29,11 @@
         <span class="nav-icon">📝</span>
         <div><span class="nav-label-ar">قيود اليومية</span><span class="nav-label-en">Journal Entry</span></div>
       </a>
-      <a href="trialbalance.html" class="nav-item active">
+      <a href="trialbalance.html" class="nav-item">
         <span class="nav-icon">⚖️</span>
         <div><span class="nav-label-ar">ميزان المراجعة</span><span class="nav-label-en">Trial Balance</span></div>
       </a>
-      <a href="ledger.html" class="nav-item">
+      <a href="ledger.html" class="nav-item active">
         <span class="nav-icon">📖</span>
         <div><span class="nav-label-ar">كشف حساب</span><span class="nav-label-en">Account Statement</span></div>
       </a>
@@ -57,36 +57,37 @@
   </header>
 
   <main class="main-content" id="mainContent">
-    <section class="page-section" id="page-trialbalance">
-      <div class="page-header">
+    <section class="page-section" id="page-ledger">
+      <div class="page-header" style="flex-wrap: wrap;">
         <div>
-          <h2 class="page-title">ميزان المراجعة</h2>
-          <p class="page-subtitle">Trial Balance</p>
+          <h2 class="page-title">كشف حساب</h2>
+          <p class="page-subtitle">Account Statement (Ledger)</p>
         </div>
-        <button class="btn btn-ghost" onclick="window.print()">🖨️ طباعة Print</button>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <select id="ledgerAccountSelect" class="form-input" style="min-width: 250px; font-weight: bold; height: 42px;" onchange="renderLedgerDetails()">
+            <option value="">-- اختر الحساب Select Account --</option>
+          </select>
+          <button class="btn btn-ghost" onclick="window.print()">🖨️ طباعة Print</button>
+        </div>
       </div>
 
-      <div class="glass-card" style="padding: 0; overflow: hidden">
+      <div class="glass-card" style="padding: 0; overflow: hidden; margin-top: 10px;">
         <div class="table-container" style="overflow-x: auto; border:none;">
-          <table id="trialBalanceTable">
+          <table id="ledgerTable">
             <thead>
               <tr class="tb-header-group">
-                <th rowspan="2" style="min-width: 60px">الكود<br />Code</th>
-                <th rowspan="2" style="min-width: 180px">اسم الحساب<br />Account Name</th>
-                <th colspan="2" style="background:#eff6ff !important; color:#2563eb;">رصيد أول المدة<br />Beginning of Year</th>
-                <th colspan="2" style="background:#fdf2f8 !important; color:#db2777;">الحركة خلال الفترة<br />Movement Through Year</th>
-                <th colspan="2" style="background:#fffbeb !important; color:#d97706;">ميزان بالمجاميع<br />Trial Balance by Totals</th>
-                <th colspan="2" style="background:#ecfdf5 !important; color:#059669;">ميزان بالأرصدة<br />Trial Balance by Balances</th>
-              </tr>
-              <tr class="tb-sub-header">
-                <th style="color: #2563eb">مدين Dr</th><th style="color: #2563eb">دائن Cr</th>
-                <th style="color: #db2777">مدين Dr</th><th style="color: #db2777">دائن Cr</th>
-                <th style="color: #d97706">مدين Dr</th><th style="color: #d97706">دائن Cr</th>
-                <th style="color: #059669">مدين Dr</th><th style="color: #059669">دائن Cr</th>
+                <th style="min-width: 100px;">التاريخ<br />Date</th>
+                <th style="min-width: 80px;">رقم القيد<br />J.E</th>
+                <th style="min-width: 300px;">البيان<br />Explanation</th>
+                <th style="min-width: 100px; color:#db2777;">مدين إضافات<br />Debit (Dr)</th>
+                <th style="min-width: 100px; color:#2563eb;">دائن خصومات<br />Credit (Cr)</th>
+                <th style="min-width: 120px; color:#059669;">الرصيد<br />Balance</th>
               </tr>
             </thead>
-            <tbody id="trialBalanceBody"></tbody>
-            <tfoot id="trialBalanceFoot"></tfoot>
+            <tbody id="ledgerBody">
+                <tr><td colspan="6" style="padding:40px;text-align:center;color:var(--text-secondary);font-weight:700;">يرجى اختيار حساب لعرض الحركة</td></tr>
+            </tbody>
+            <tfoot id="ledgerFoot"></tfoot>
           </table>
         </div>
       </div>
